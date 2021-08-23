@@ -1,12 +1,17 @@
 package id.compunerds.esctutorattendance;
 
+import static id.compunerds.esctutorattendance.MyApp.db;
+
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -38,17 +43,16 @@ import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
-import static id.compunerds.esctutorattendance.MyApp.db;
-
 public class MainActivity extends AppCompatActivity {
 
     String scannedData;
-    Button scanBtn;
+    ProgressBar progressBar;
+    ImageView bgLoading, btScan;
+
     Siswa siswa;
     RecyclerView recyclerView;
     RecyclerAdapter recyclerAdapter;
     List<Siswa> listSiswa = new ArrayList<>();
-
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,28 +60,37 @@ public class MainActivity extends AppCompatActivity {
         final Activity activity = this;
 
         recyclerView = findViewById(R.id.rvDatabaseScan);
-        scanBtn = findViewById(R.id.scan_btn);
+        progressBar = findViewById(R.id.simpleProgressBar);
+        bgLoading = findViewById(R.id.bg_loading);
+        btScan = findViewById(R.id.bt_scan_qr);
+
 
         fetchDataFromRoom();
         initRecyclerView();
         setAdapter();
 
-        scanBtn.setOnClickListener(new View.OnClickListener() {
+        btScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 IntentIntegrator integrator = new IntentIntegrator(activity);
                 integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-                integrator.setPrompt("Scan");
+                integrator.setPrompt("Scan QR Code");
                 integrator.setBeepEnabled(false);
                 integrator.setCameraId(0);
                 integrator.setBarcodeImageEnabled(false);
+                integrator.setOrientationLocked(false);
                 integrator.initiateScan();
             }
         });
     }
 
     private void setAdapter() {
+//        btScan.setText("SCAN");
+        btScan.setClickable(true);
+        bgLoading.setVisibility(View.GONE);
+        progressBar.setVisibility(View.GONE);
         recyclerView.setAdapter(recyclerAdapter);
+        recyclerAdapter.notifyDataSetChanged();
     }
 
     private void initRecyclerView() {
@@ -85,24 +98,28 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager llm = new LinearLayoutManager(this);
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
-        recyclerAdapter =new RecyclerAdapter(this, listSiswa);
+        recyclerAdapter = new RecyclerAdapter(this, listSiswa);
         recyclerAdapter.notifyDataSetChanged();
     }
 
     private void fetchDataFromRoom() {
         db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class,"siswa").allowMainThreadQueries().build();
+                AppDatabase.class, "siswa").allowMainThreadQueries().build();
         listSiswa = db.userDao().getAll();
 
-        for (int i = 0 ;i <listSiswa.size();i++){
-            Log.e("Aplikasi",listSiswa.get(i).getNama()+i);
-            Log.e("Aplikasi",listSiswa.get(i).getTglMulai()+i);
+        for (int i = 0; i < listSiswa.size(); i++) {
+            Log.e("Aplikasi", listSiswa.get(i).getNama() + i);
+            Log.e("Aplikasi", listSiswa.get(i).getTglMulai() + i);
         }
     }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        bgLoading.setVisibility(View.VISIBLE);
+        progressBar.setVisibility(View.VISIBLE);
+        btScan.setClickable(false);
+//        scanBtn.setText("SCANNING...");
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null) {
             scannedData = result.getContents();
@@ -112,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 Date c = Calendar.getInstance().getTime();
                 System.out.println("Current time => " + c);
 
-                SimpleDateFormat df = new SimpleDateFormat("h:mm a dd MMMM yyyy");
+                SimpleDateFormat df = new SimpleDateFormat("kk:mm dd MMMM yyyy");
                 String formattedDate = df.format(c);
 
                 scannedData = result.getContents();
@@ -121,8 +138,14 @@ public class MainActivity extends AppCompatActivity {
                 siswa.setTglMulai(formattedDate);
                 db.userDao().insertAll(siswa);
             } else {
-
+                startActivity(new Intent(this, MainActivity.class));
+                Toast.makeText(this, "Scan dibatalkan", Toast.LENGTH_SHORT).show();
+                finish();
             }
+        }else {
+            startActivity(new Intent(this, MainActivity.class));
+            Toast.makeText(this, "Scan dibatalkan", Toast.LENGTH_SHORT).show();
+            finish();
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -162,13 +185,14 @@ public class MainActivity extends AppCompatActivity {
 
                 //Passing scanned code as parameter
                 postDataParams.put("sdata", scannedData);
+                postDataParams.put("nameTutor", "Tester");
 
                 Log.e("params", postDataParams.toString());
 
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setReadTimeout(15000 /* milliseconds */);
                 conn.setConnectTimeout(15000 /* milliseconds */);
-                conn.setRequestMethod("GET");
+                conn.setRequestMethod("POST");
                 conn.setDoInput(true);
                 conn.setDoOutput(true);
 
@@ -205,9 +229,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(getApplicationContext(), result,
-                    Toast.LENGTH_LONG).show();
-            Toast.makeText(MainActivity.this, "SCAN SUCCESS", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+//            Toast.makeText(MainActivity.this, "SCAN SUCCESS", Toast.LENGTH_SHORT).show();
             fetchDataFromRoom();
             initRecyclerView();
             setAdapter();
