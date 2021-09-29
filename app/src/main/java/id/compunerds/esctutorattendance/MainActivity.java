@@ -1,15 +1,15 @@
 package id.compunerds.esctutorattendance;
 
+import static id.compunerds.esctutorattendance.AppDatabase.MIGRATION_1_2;
+import static id.compunerds.esctutorattendance.AppDatabase.MIGRATION_2_3;
 import static id.compunerds.esctutorattendance.MyApp.db;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         bgLoading = findViewById(R.id.bg_loading);
         btScan = findViewById(R.id.bt_scan_qr);
 
-
         fetchDataFromRoom();
         initRecyclerView();
         setAdapter();
@@ -104,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchDataFromRoom() {
         db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "siswa").allowMainThreadQueries().build();
+                AppDatabase.class, "siswa").allowMainThreadQueries().addMigrations(MIGRATION_1_2).build();
         listSiswa = db.userDao().getAll();
 
         for (int i = 0; i < listSiswa.size(); i++) {
@@ -129,20 +128,23 @@ public class MainActivity extends AppCompatActivity {
                 Date c = Calendar.getInstance().getTime();
                 System.out.println("Current time => " + c);
 
-                SimpleDateFormat df = new SimpleDateFormat("kk:mm dd MMMM yyyy");
+                SimpleDateFormat time = new SimpleDateFormat("kk:mm");
+                SimpleDateFormat df = new SimpleDateFormat("dd MMMM yyyy");
                 String formattedDate = df.format(c);
+                String formattedTime = time.format(c);
 
                 scannedData = result.getContents();
                 siswa = new Siswa();
                 siswa.setNama(scannedData);
                 siswa.setTglMulai(formattedDate);
+                siswa.setJamMulai(formattedTime);
                 db.userDao().insertAll(siswa);
             } else {
                 startActivity(new Intent(this, MainActivity.class));
                 Toast.makeText(this, "Scan dibatalkan", Toast.LENGTH_SHORT).show();
                 finish();
             }
-        }else {
+        } else {
             startActivity(new Intent(this, MainActivity.class));
             Toast.makeText(this, "Scan dibatalkan", Toast.LENGTH_SHORT).show();
             finish();
@@ -185,9 +187,6 @@ public class MainActivity extends AppCompatActivity {
 
                 //Passing scanned code as parameter
                 postDataParams.put("sdata", scannedData);
-                postDataParams.put("nameTutor", "Tester");
-
-                Log.e("params", postDataParams.toString());
 
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setReadTimeout(15000 /* milliseconds */);

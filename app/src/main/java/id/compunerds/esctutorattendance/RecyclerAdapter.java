@@ -35,6 +35,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
         final Siswa siswa = siswaList.get(position);
         holder.nama.setText(siswa.getNama());
         holder.tglMulai.setText(siswa.getTglMulai());
+        holder.jamMulai.setText(siswa.getJamMulai());
     }
 
     @Override
@@ -44,13 +45,14 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.MyView
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
 
-        TextView nama, tglMulai;
+        TextView nama, tglMulai, jamMulai;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
 
             nama = (TextView) itemView.findViewById(R.id.rvResultNama);
             tglMulai = (TextView) itemView.findViewById(R.id.rvTglScan);
+            jamMulai = itemView.findViewById(R.id.rvJamScan);
         }
     }
 }

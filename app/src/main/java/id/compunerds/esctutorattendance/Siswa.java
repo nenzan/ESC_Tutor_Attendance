@@ -13,6 +13,8 @@ public class Siswa {
     String nama;
     @ColumnInfo(name = "Tanggal Mulai")
     String tglMulai;
+    @ColumnInfo(name = "Jam Mulai")
+    String jamMulai;
 
     public int getId() {
         return id;
@@ -36,5 +38,13 @@ public class Siswa {
 
     public void setTglMulai(String tglMulai) {
         this.tglMulai = tglMulai;
+    }
+
+    public String getJamMulai() {
+        return jamMulai;
+    }
+
+    public void setJamMulai(String jamMulai) {
+        this.jamMulai = jamMulai;
     }
 }
