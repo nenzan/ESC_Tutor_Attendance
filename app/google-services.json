@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "896770078120",
+    "project_id": "esc-tutor-attendance",
+    "storage_bucket": "esc-tutor-attendance.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:896770078120:android:a0e952564e6c70f423599d",
+        "android_client_info": {
+          "package_name": "id.compunerds.esctutorattendance"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "896770078120-re7m2qut648g9j54ojqq9u7ormks8ss8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_a1Xy17NED6hssk_TkTc9L05KcwQlfY0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "896770078120-re7m2qut648g9j54ojqq9u7ormks8ss8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
